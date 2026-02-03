@@ -252,11 +252,15 @@ static int do_uid_should_umount(void __user *arg)
     return 0;
 }
 
+// this api mostly use case is tell zygisk impl who is the root manager
+// we return last use manager's uid to make them can inject ZYGISK_ENABLED=1
+// if user are not open any manager yet, we return the first registered manager
+// if no manager registered, return -1 (KSU_INVALID_APPID)
 static int do_get_manager_appid(void __user *arg)
 {
     struct ksu_get_manager_appid_cmd cmd;
 
-    cmd.appid = ksu_get_manager_appid();
+    cmd.appid = ksu_last_manager_appid;
 
     if (copy_to_user(arg, &cmd, sizeof(cmd))) {
         pr_err("get_manager_appid: copy_to_user failed\n");
@@ -698,7 +702,7 @@ static int do_get_managers(void __user *arg)
 {
     struct ksu_get_managers_cmd cmd;
 
-    int ret = ksu_get_active_managers(&cmd.manager_info);
+    int ret = ksu_get_manager_list(&cmd.manager_info);
     if (ret)
         return ret;
 

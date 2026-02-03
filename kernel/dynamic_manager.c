@@ -21,13 +21,12 @@
 #include <crypto/sha.h>
 #endif
 
+#include "throne_tracker.h"
 #include "kernel_compat.h"
 #include "dynamic_manager.h"
 #include "klog.h" // IWYU pragma: keep
 #include "manager.h"
 #include "ksu.h"
-
-#define MAX_MANAGERS 2
 
 // Dynamic sign configuration
 static struct dynamic_manager_config dynamic_manager = {
@@ -35,11 +34,6 @@ static struct dynamic_manager_config dynamic_manager = {
     .hash = "0000000000000000000000000000000000000000000000000000000000000000",
     .is_set = 0
 };
-
-// Multi-manager state
-static struct manager_info active_managers[MAX_MANAGERS];
-static DEFINE_SPINLOCK(managers_lock);
-static DEFINE_SPINLOCK(dynamic_manager_lock);
 
 // Task work structure for persistent storage
 struct save_dynamic_manager_tw {
@@ -49,185 +43,18 @@ struct save_dynamic_manager_tw {
 
 bool ksu_is_dynamic_manager_enabled(void)
 {
-    unsigned long flags;
-    bool enabled;
-
-    spin_lock_irqsave(&dynamic_manager_lock, flags);
-    enabled = dynamic_manager.is_set;
-    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
-
-    return enabled;
+    return dynamic_manager.is_set;
 }
 
-void ksu_add_manager(uid_t uid, int signature_index)
+apk_sign_key_t ksu_get_dynamic_manager_sign(void)
 {
-    unsigned long flags;
-    int i;
+    apk_sign_key_t sign_key = { .size = dynamic_manager.size,
+                                .sha256 = dynamic_manager.hash };
 
-    if (!ksu_is_dynamic_manager_enabled()) {
-        pr_info("Dynamic sign not enabled, skipping multi-manager add\n");
-        return;
-    }
-
-    spin_lock_irqsave(&managers_lock, flags);
-
-    // Check if manager already exists and update
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (active_managers[i].is_active && active_managers[i].uid == uid) {
-            active_managers[i].signature_index = signature_index;
-            spin_unlock_irqrestore(&managers_lock, flags);
-            pr_info("Updated manager uid=%d, signature_index=%d\n", uid,
-                    signature_index);
-            return;
-        }
-    }
-
-    // Find free slot for new manager
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (!active_managers[i].is_active) {
-            active_managers[i].uid = uid;
-            active_managers[i].signature_index = signature_index;
-            active_managers[i].is_active = true;
-            spin_unlock_irqrestore(&managers_lock, flags);
-            pr_info("Added manager uid=%d, signature_index=%d\n", uid,
-                    signature_index);
-            return;
-        }
-    }
-
-    spin_unlock_irqrestore(&managers_lock, flags);
-    pr_warn("Failed to add manager, no free slots\n");
+    return sign_key;
 }
 
-void ksu_remove_manager(uid_t uid)
-{
-    unsigned long flags;
-    int i;
-
-    if (!ksu_is_dynamic_manager_enabled()) {
-        return;
-    }
-
-    spin_lock_irqsave(&managers_lock, flags);
-
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (active_managers[i].is_active && active_managers[i].uid == uid) {
-            active_managers[i].is_active = false;
-            pr_info("Removed manager uid=%d\n", uid);
-            break;
-        }
-    }
-
-    spin_unlock_irqrestore(&managers_lock, flags);
-}
-
-bool ksu_is_any_manager(uid_t uid)
-{
-    unsigned long flags;
-    bool is_manager = false;
-    int i;
-
-    if (!ksu_is_dynamic_manager_enabled()) {
-        return false;
-    }
-
-    spin_lock_irqsave(&managers_lock, flags);
-
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (active_managers[i].is_active && active_managers[i].uid == uid) {
-            is_manager = true;
-            break;
-        }
-    }
-
-    spin_unlock_irqrestore(&managers_lock, flags);
-    return is_manager;
-}
-
-int ksu_get_manager_signature_index(uid_t uid)
-{
-    unsigned long flags;
-    int signature_index = -1;
-    int i;
-
-    // Check traditional manager first
-    if (ksu_manager_appid != KSU_INVALID_APPID && uid == ksu_manager_appid) {
-        return DYNAMIC_SIGN_INDEX;
-    }
-
-    if (!ksu_is_dynamic_manager_enabled()) {
-        return -1;
-    }
-
-    spin_lock_irqsave(&managers_lock, flags);
-
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (active_managers[i].is_active && active_managers[i].uid == uid) {
-            signature_index = active_managers[i].signature_index;
-            break;
-        }
-    }
-
-    spin_unlock_irqrestore(&managers_lock, flags);
-    return signature_index;
-}
-
-static void clear_dynamic_manager(void)
-{
-    unsigned long flags;
-    int i;
-
-    spin_lock_irqsave(&managers_lock, flags);
-
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        if (active_managers[i].is_active) {
-            pr_info(
-                "Clearing dynamic manager uid=%d (signature_index=%d) for rescan\n",
-                active_managers[i].uid, active_managers[i].signature_index);
-            active_managers[i].is_active = false;
-        }
-    }
-
-    spin_unlock_irqrestore(&managers_lock, flags);
-}
-
-int ksu_get_active_managers(struct manager_list_info *info)
-{
-    unsigned long flags;
-    int i, count = 0;
-
-    if (!info) {
-        return -EINVAL;
-    }
-
-    // Add traditional manager first
-    if (ksu_manager_appid != KSU_INVALID_APPID && count < 2) {
-        info->managers[count].uid = ksu_manager_appid;
-        info->managers[count].signature_index = 0;
-        count++;
-    }
-
-    // Add dynamic managers
-    if (ksu_is_dynamic_manager_enabled()) {
-        spin_lock_irqsave(&managers_lock, flags);
-
-        for (i = 0; i < MAX_MANAGERS && count < 2; i++) {
-            if (active_managers[i].is_active) {
-                info->managers[count].uid = active_managers[i].uid;
-                info->managers[count].signature_index =
-                    active_managers[i].signature_index;
-                count++;
-            }
-        }
-
-        spin_unlock_irqrestore(&managers_lock, flags);
-    }
-
-    info->count = count;
-    return 0;
-}
-
-static void do_save_dynamic_manager(struct callback_head *_cb)
+static void do_save_dynamic_manager_and_track_throne(struct callback_head *_cb)
 {
     struct save_dynamic_manager_tw *tw =
         container_of(_cb, struct save_dynamic_manager_tw, cb);
@@ -268,6 +95,8 @@ static void do_save_dynamic_manager(struct callback_head *_cb)
     }
 
     pr_info("Dynamic sign config saved successfully\n");
+
+    track_throne(false);
 
 close_file:
     filp_close(fp, 0);
@@ -347,9 +176,7 @@ static void do_load_dynamic_manager(struct callback_head *_cb)
         }
     }
 
-    spin_lock_irqsave(&dynamic_manager_lock, flags);
     dynamic_manager = loaded_config;
-    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
 
     pr_info("Dynamic sign config loaded: size=0x%x, hash=%.16s...\n",
             loaded_config.size, loaded_config.hash);
@@ -361,7 +188,7 @@ revert:
     kfree(_cb);
 }
 
-static bool persistent_dynamic_manager(void)
+static bool save_dynamic_manager_and_track_throne(void)
 {
     struct task_struct *tsk;
     struct save_dynamic_manager_tw *tw;
@@ -369,21 +196,19 @@ static bool persistent_dynamic_manager(void)
 
     tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
     if (!tsk) {
-        pr_err("persistent_dynamic_manager find init task err\n");
+        pr_err("save_dynamic_manager_and_track_throne find init task err\n");
         return false;
     }
 
     tw = kzalloc(sizeof(*tw), GFP_KERNEL);
     if (!tw) {
-        pr_err("persistent_dynamic_manager alloc cb err\n");
+        pr_err("save_dynamic_manager_and_track_throne alloc cb err\n");
         goto put_task;
     }
 
-    spin_lock_irqsave(&dynamic_manager_lock, flags);
     tw->config = dynamic_manager;
-    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
 
-    tw->cb.func = do_save_dynamic_manager;
+    tw->cb.func = do_save_dynamic_manager_and_track_throne;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
     task_work_add(tsk, &tw->cb, TWA_RESUME);
 #else
@@ -484,7 +309,11 @@ int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config)
             }
         }
 
-        spin_lock_irqsave(&dynamic_manager_lock, flags);
+        if (dynamic_manager.is_set) {
+            ksu_unregister_manager_by_signature_index(
+                DYNAMIC_MANAGER_SIGNATURE_INDEX_MAGIC);
+        }
+
         dynamic_manager.size = config->size;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
         strscpy(dynamic_manager.hash, config->hash,
@@ -494,16 +323,14 @@ int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config)
                 sizeof(dynamic_manager.hash));
 #endif
         dynamic_manager.is_set = 1;
-        spin_unlock_irqrestore(&dynamic_manager_lock, flags);
 
-        persistent_dynamic_manager();
+        save_dynamic_manager_and_track_throne();
         pr_info(
             "dynamic manager updated: size=0x%x, hash=%.16s... (multi-manager enabled)\n",
             config->size, config->hash);
         break;
 
     case DYNAMIC_MANAGER_OP_GET:
-        spin_lock_irqsave(&dynamic_manager_lock, flags);
         if (dynamic_manager.is_set) {
             config->size = dynamic_manager.size;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)
@@ -515,20 +342,19 @@ int ksu_handle_dynamic_manager(struct dynamic_manager_user_config *config)
         } else {
             ret = -ENODATA;
         }
-        spin_unlock_irqrestore(&dynamic_manager_lock, flags);
         break;
 
     case DYNAMIC_MANAGER_OP_CLEAR:
-        spin_lock_irqsave(&dynamic_manager_lock, flags);
+        if (!dynamic_manager.is_set)
+            break;
+        ksu_unregister_manager_by_signature_index(
+            DYNAMIC_MANAGER_SIGNATURE_INDEX_MAGIC);
+
         dynamic_manager.size = 0x300;
         strcpy(
             dynamic_manager.hash,
             "0000000000000000000000000000000000000000000000000000000000000000");
         dynamic_manager.is_set = 0;
-        spin_unlock_irqrestore(&dynamic_manager_lock, flags);
-
-        // Clear only dynamic managers, preserve default manager
-        clear_dynamic_manager();
 
         // Clear file using the same method as save
         clear_dynamic_manager_file();
@@ -576,11 +402,6 @@ void ksu_dynamic_manager_init(void)
 {
     int i;
 
-    // Initialize manager slots
-    for (i = 0; i < MAX_MANAGERS; i++) {
-        active_managers[i].is_active = false;
-    }
-
     ksu_load_dynamic_manager();
 
     pr_info(
@@ -592,8 +413,6 @@ void ksu_dynamic_manager_exit(void)
     struct task_struct *tsk;
     struct save_dynamic_manager_tw *tw;
     unsigned long flags;
-
-    clear_dynamic_manager();
 
     // Save current config before exit
     tsk = get_pid_task(find_vpid(1), PIDTYPE_PID);
@@ -608,11 +427,9 @@ void ksu_dynamic_manager_exit(void)
         goto put_task;
     }
 
-    spin_lock_irqsave(&dynamic_manager_lock, flags);
     tw->config = dynamic_manager;
-    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
 
-    tw->cb.func = do_save_dynamic_manager;
+    tw->cb.func = do_save_dynamic_manager_and_track_throne;
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
     task_work_add(tsk, &tw->cb, TWA_RESUME);
 #else
@@ -630,7 +447,6 @@ bool ksu_get_dynamic_manager_config(unsigned int *size, const char **hash)
     unsigned long flags;
     bool valid = false;
 
-    spin_lock_irqsave(&dynamic_manager_lock, flags);
     if (dynamic_manager.is_set) {
         if (size)
             *size = dynamic_manager.size;
@@ -638,7 +454,6 @@ bool ksu_get_dynamic_manager_config(unsigned int *size, const char **hash)
             *hash = dynamic_manager.hash;
         valid = true;
     }
-    spin_unlock_irqrestore(&dynamic_manager_lock, flags);
 
     return valid;
 }

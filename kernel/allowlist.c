@@ -288,8 +288,7 @@ bool __ksu_is_allow_uid(uid_t uid)
         return false;
     }
 
-    if (likely(ksu_is_manager_appid_valid()) &&
-        unlikely(ksu_get_manager_appid() == uid % PER_USER_RANGE)) {
+    if (likely(ksu_is_manager_uid(uid))) {
         // manager is always allowed!
         return true;
     }
@@ -321,8 +320,7 @@ bool ksu_uid_should_umount(uid_t uid)
     struct app_profile profile = { .current_uid = uid };
     bool found = false;
 
-    if (likely(ksu_is_manager_appid_valid()) &&
-        unlikely(ksu_get_manager_appid() == uid % PER_USER_RANGE)) {
+    if (likely(ksu_is_manager_uid(uid))) {
         // we should not umount on manager!
         return false;
     }
