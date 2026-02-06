@@ -660,10 +660,12 @@ static int do_get_hook_type(void __user *arg)
 
     return 0;
 }
-// For KernelSU-Next
+// For KernelSU-Next's manager compatibility
 static int do_get_hook_mode(void __user *arg)
 {
-	do_get_hook_type(arg);
+	int ret;
+	ret = do_get_hook_type(arg);
+	return ret;
 }
 
 // 102. ENABLE_KPM - Check if KPM is enabled
