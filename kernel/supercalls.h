@@ -164,6 +164,7 @@ struct ksu_get_managers_cmd {
 // Other IOCTL command definitions
 #define KSU_IOCTL_GET_FULL_VERSION _IOC(_IOC_READ, 'K', 100, 0)
 #define KSU_IOCTL_HOOK_TYPE _IOC(_IOC_READ, 'K', 101, 0)
+#define KSU_IOCTL_GET_HOOK_MODE _IOC(_IOC_READ, 'K', 98, 0)
 #define KSU_IOCTL_ENABLE_KPM _IOC(_IOC_READ, 'K', 102, 0)
 #define KSU_IOCTL_DYNAMIC_MANAGER _IOC(_IOC_READ | _IOC_WRITE, 'K', 103, 0)
 // 104 = old get_managers, deprecated

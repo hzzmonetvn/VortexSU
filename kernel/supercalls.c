@@ -660,6 +660,11 @@ static int do_get_hook_type(void __user *arg)
 
     return 0;
 }
+// For KernelSU-Next
+static int do_get_hook_mode(void __user *arg)
+{
+	do_get_hook_type(arg);
+}
 
 // 102. ENABLE_KPM - Check if KPM is enabled
 static int do_enable_kpm(void __user *arg)
@@ -802,6 +807,10 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
     { .cmd = KSU_IOCTL_HOOK_TYPE,
       .name = "GET_HOOK_TYPE",
       .handler = do_get_hook_type,
+      .perm_check = manager_or_root },
+    { .cmd = KSU_IOCTL_GET_HOOK_MODE,
+      .name = "GET_HOOK_MODE",
+      .handler = do_get_hook_mode,
       .perm_check = manager_or_root },
     { .cmd = KSU_IOCTL_ENABLE_KPM,
       .name = "GET_ENABLE_KPM",
