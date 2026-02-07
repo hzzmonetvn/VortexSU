@@ -108,6 +108,24 @@ jobs:
               echo KEYSTORE_FILE='key.jks'
             } >> gradle.properties
             echo "${{ secrets.KEYSTORE }}" | base64 -d > key.jks
+            echo "Keystore written to key.jks"
+          else
+            echo "No KEYSTORE secret found, building without signing."
+          fi
+
+      - name: Verify Keystore
+        if: ${{ github.event_name == 'workflow_dispatch' || ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
+        run: |
+          if [ -f "key.jks" ]; then
+            echo "Verifying keystore integrity and password..."
+            keytool -list -v -keystore key.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+              echo "Keystore verified successfully."
+            else
+              echo "ERROR: Keystore password is incorrect or file is corrupted!"
+              echo "Please check your KEYSTORE and KEYSTORE_PASSWORD secrets."
+              exit 1
+            fi
           fi
 
       - name: Setup Java
