@@ -1,4 +1,4 @@
-# ReSukiSU, 
+# FORK => ReSukiSU, 
 UNOFFICIAL 
 MANAGER SUPPORT: MamboSU, KowSU, RKSU, SukiSU, KernelSU-Next, WildKSU
 <img align='right' src='SukiSU-mini.svg' width='220px' alt="sukisu logo">
