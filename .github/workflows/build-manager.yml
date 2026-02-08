@@ -97,24 +97,17 @@ jobs:
           chmod +x randomizer
           ./randomizer
 
-      - name: Generate Keystore (On the fly)
+      - name: Write key
         if: ${{ github.event_name == 'workflow_dispatch' || ( github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' )) || github.ref_type == 'tag' }}
         run: |
-          if [ ! -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
-            echo "Generating keystore on the fly..."
-            keytool -genkeypair -v -keystore key.jks -alias vortexsu -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-              -keypass "${{ secrets.KEY_PASSWORD }}" \
-              -dname "CN=VorteX Developer, OU=Dev, O=VorteX, L=Jakarta, ST=Jakarta, C=ID"
+          if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             {
               echo KEYSTORE_PASSWORD='${{ secrets.KEYSTORE_PASSWORD }}'
               echo KEY_ALIAS='${{ secrets.KEY_ALIAS }}'
               echo KEY_PASSWORD='${{ secrets.KEY_PASSWORD }}'
               echo KEYSTORE_FILE='key.jks'
             } >> gradle.properties
-            echo "Keystore generated and configured."
-          else
-            echo "No KEYSTORE_PASSWORD secret found, building without signing."
+            echo "${{ secrets.KEYSTORE }}" | base64 -d > key.jks
           fi
 
       - name: Setup Java
