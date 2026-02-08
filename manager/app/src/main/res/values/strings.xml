@@ -726,3 +726,4 @@ Important Note:\n
     <string name="settings_disable_sulog">Disable superuser logging</string>
     <string name="settings_disable_sulog_summary">Disable KernelSU superuser access logging</string>
 </resources>
+
