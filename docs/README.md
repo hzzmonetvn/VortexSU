@@ -61,5 +61,5 @@ Respect to the entire #kernelsu development community.
 
 ## Community VortexSU
 
-Telegram:
-https://t.me/vortex_SU
+[Telegram](https://t.me/vortex_SU)
+
