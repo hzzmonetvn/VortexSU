@@ -19,8 +19,20 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v7
 
-      - name: Rename ksud
+      - name: Prepare and Rename Assets
         run: |
+          # 1. Rename APK agar tidak ada nama yang sama (Conflict)
+          # Cari di folder Manager-release
+          if [ -d "Manager-release" ]; then
+            find Manager-release -name "*.apk" -exec mv {} . \;
+          fi
+          # Cari di folder Spoofed-Manager-release, tambah suffix -spoofed
+          if [ -d "Spoofed-Manager-release" ]; then
+            find Spoofed-Manager-release -name "*.apk" -exec sh -c 'mv "$1" "${1%.apk}-spoofed.apk"' _ {} \;
+            find Spoofed-Manager-release -name "*-spoofed.apk" -exec mv {} . \;
+          fi
+
+          # 2. Rename ksud
           mkdir -p ksud
           for dir in ./ksud-*; do
               if [ -d "$dir" ]; then
@@ -34,32 +46,17 @@ jobs:
               fi
           done
 
-      - name: Zip AnyKernel3
-        run: |
-          for dir in AnyKernel3-*; do
+          # 3. Zip Kernel Modules (AnyKernel, WSA, ARCVM)
+          # Kita gabungkan loop nya agar lebih bersih
+          for dir in AnyKernel3-* kernel-WSA-* kernel-ARCVM-*; do
             if [ -d "$dir" ]; then
               echo "----- Zip $dir -----"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
+              (cd "$dir" && zip -r9 "../$dir".zip ./* -x .git .gitignore ./*.zip)
             fi
           done
 
-      - name: Zip WSA kernel
-        run: |
-          for dir in kernel-WSA-*; do
-            if [ -d "$dir" ]; then
-              echo "------ Zip $dir ----------"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
-          done
-
-      - name: Zip ChromeOS ARCVM kernel
-        run: |
-          for dir in kernel-ARCVM-*; do
-            if [ -d "$dir" ]; then
-              echo "------ Zip $dir ----------"
-              (cd $dir && zip -r9 "$dir".zip ./* -x .git .gitignore ./*.zip && mv *.zip ..)
-            fi
-          done
+          # 4. Pindahkan .ko files ke root agar mudah di upload
+          find android*-lkm -name "*.ko" -exec mv {} . \; 2>/dev/null || true
 
       - name: Display structure of downloaded files
         run: ls -R
@@ -67,14 +64,13 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          # PERBAIKAN 1: Ganti 'tag' menjadi 'tag_name'
+          # PERBAIKAN: Gunakan tag_name, bukan tag
           tag_name: ${{ github.event_name == 'workflow_dispatch' && format('ci-build-{0}', github.run_number) || github.ref_name }}
           files: |
-            # PERBAIKAN 2: Gunakan wildcard **/*.apk agar pasti ketemu
-            **/*.apk
-            android*-lkm/*_kernelsu.ko
+            *.apk
+            *.ko
             AnyKernel3-*.zip
-            boot-images-*/Image-*/*.img.gz
             kernel-WSA*.zip
             kernel-ARCVM*.zip
+            boot-images-*/Image-*/*.img.gz
             ksud/ksud-*
