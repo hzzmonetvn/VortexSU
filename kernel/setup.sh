@@ -43,8 +43,8 @@ setup_kernelsu() {
     if [ ! -d "$GKI_ROOT/KernelSU" ]; then
         # ---CHANGES HERE  ---
         #  URL changed to Kingfinik98 Fork to carry over patch manager
-        git clone https://github.com/Kingfinik98/VortexSU KernelSU
-        echo "[+] Repository cloned from Kingfinik98 Fork."
+        git clone https://github.com/hzzmonetvn/VortexSU KernelSU
+        echo "[+] Repository cloned from hzz Fork."
     fi
     cd "$GKI_ROOT/KernelSU"
     git stash && echo "[-] Stashed current changes."
