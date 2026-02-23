@@ -56,6 +56,11 @@
 #define EXPECTED_HASH_VORTEXSU                                                    \
     "67eec44718428adad14e6a9dca57822759aba7e77a8cad7071f6f6704df8bb48"
 
+// kingfinik98/kernelSU (VorteXSU)
+#define EXPECTED_SIZE_VORTEX 0x385
+#define EXPECTED_HASH_VORTEX                                                    \
+    "2b8a1087ec94d19ed3c0aa468fb6dcc3e0af5ea0d683bd64da20051847184e8e"
+
 // Dynamic Sign
 #define EXPECTED_SIZE_OTHER 0x300
 #define EXPECTED_HASH_OTHER                                                    \
