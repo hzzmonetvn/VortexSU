@@ -321,7 +321,8 @@ private fun TopBar(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(),
+                .statusBarsPadding()
+                .padding(top = 32.dp), // 🔥 PERBAIKAN: Menurunkan teks agar tidak terlalu ke atas
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
