@@ -114,6 +114,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberScrollState()
 
+    // PERBAIKAN: contentWindowInsets = WindowInsets(0)
     Scaffold(
         topBar = {
             TopBar(
@@ -122,13 +123,11 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 isDataLoaded = viewModel.isCoreDataLoaded
             )
         },
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-        )
+        contentWindowInsets = WindowInsets(0) // 🔥 UBAH JADI INI
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(innerPadding) // Biarkan padding dari Scaffold (hanya tinggi TopBar sekarang)
                 .fillMaxSize()
                 .pullRefresh(pullRefreshState)
         ) {
@@ -136,7 +135,12 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(top = 12.dp, start = 16.dp, end = 16.dp),
+                    .padding(
+                        top = 12.dp,
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 16.dp
+                    ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // 状态卡片
@@ -289,36 +293,35 @@ private fun TopBar(
         colorScheme.background
     }
 
-    // --- PERBAIKAN BANNER: Menggunakan Box custom agar Full Width ---
-    // Mengganti TopAppBar standar yang memiliki padding internal
+    // Implementasi Box Custom untuk Full Width Banner
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp) // Tinggi banner disesuaikan
+            .height(180.dp)
             .background(cardColor.copy(alpha = cardAlpha))
     ) {
-        // Gambar Banner Full (Tanpa Padding)
+        // Gambar Banner
         Image(
             painter = painterResource(id = R.drawable.header_bg),
             contentDescription = null,
             modifier = Modifier
-                .fillMaxSize() // Mengisi seluruh Box
-                .clipToBounds(), // Memastikan tidak overflow
-            contentScale = ContentScale.Crop // Agar gambar pas & tidak gepeng
+                .fillMaxSize()
+                .clipToBounds(),
+            contentScale = ContentScale.Crop
         )
 
-        // Overlay gelap transparan (opsional, agar teks lebih jelas)
+        // Overlay (Opsional)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.25f))
         )
 
-        // Teks Tengah "VorteXSU"
+        // Konten Tengah
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(), // Menjaga teks agar tidak ketiban status bar
+                .statusBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -336,16 +339,15 @@ private fun TopBar(
             )
         }
 
-        // Tombol Aksi (Pojok Kanan Atas)
+        // Tombol Aksi Pojok Kanan
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .statusBarsPadding() // Menjaga tombol agar tidak ketiban status bar
+                .statusBarsPadding()
                 .padding(top = 8.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isDataLoaded) {
-                // SuSFS 配置按钮
                 if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
                     IconButton(onClick = {
                         navigator.navigate(SuSFSConfigScreenDestination)
@@ -353,12 +355,11 @@ private fun TopBar(
                         Icon(
                             imageVector = Icons.Filled.Tune,
                             contentDescription = stringResource(R.string.susfs_config_setting_title),
-                            tint = Color.White // Warna putih agar kontras
+                            tint = Color.White
                         )
                     }
                 }
 
-                // 重启按钮
                 var showDropdown by remember { mutableStateOf(false) }
                 KsuIsValid {
                     IconButton(onClick = {
@@ -367,7 +368,7 @@ private fun TopBar(
                         Icon(
                             imageVector = Icons.Filled.PowerSettingsNew,
                             contentDescription = stringResource(id = R.string.reboot),
-                            tint = Color.White // Warna putih
+                            tint = Color.White
                         )
 
                         DropdownMenu(expanded = showDropdown, onDismissRequest = {
