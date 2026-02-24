@@ -114,7 +114,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val scrollState = rememberScrollState()
 
-    // PERBAIKAN: contentWindowInsets = WindowInsets(0)
+    // PERBAIKAN: contentWindowInsets = ScaffoldDefaults.contentWindowInsets
     Scaffold(
         topBar = {
             TopBar(
@@ -123,7 +123,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 isDataLoaded = viewModel.isCoreDataLoaded
             )
         },
-        contentWindowInsets = WindowInsets(0) // 🔥 UBAH JADI INI
+        contentWindowInsets = ScaffoldDefaults.contentWindowInsets // 🔥 UBAH JADI INI
     ) { innerPadding ->
         Box(
             modifier = Modifier
