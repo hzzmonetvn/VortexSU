@@ -136,7 +136,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(
-                        top = 12.dp,
+                        top = 20.dp,
                         start = 16.dp,
                         end = 16.dp,
                         bottom = 16.dp
@@ -319,12 +319,12 @@ private fun TopBar(
                 .background(Color.Black.copy(alpha = 0.25f))
         )
 
-        // Konten Tengah
+        // 🔥 DIHAPUS: Konten Tengah (Teks VorteXSU dan Berfungsi)
+        /*
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                // HAPUS statusBarsPadding() dari sini
-                .padding(top = 32.dp), // Padding internal untuk posisi teks
+                .padding(top = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -341,6 +341,7 @@ private fun TopBar(
                 style = MaterialTheme.typography.bodySmall
             )
         }
+        */
 
         // Tombol Aksi Pojok Kanan
         Row(
