@@ -345,7 +345,7 @@ private fun TopBar(
                             color = colorScheme.primary
                         )
                         Text(
-                            text = "System Interface",
+                            text = "root is my life",
                             style = MaterialTheme.typography.labelSmall,
                             color = colorScheme.onSurfaceVariant
                         )
