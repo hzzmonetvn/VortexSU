@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Stable
 object CardConfig {
-    // Ubah default alpha sedikit transparan
+    // Transparansi default (sedikit terlihat background)
     var cardAlpha by mutableFloatStateOf(0.95f)
         internal set
     var cardDim by mutableFloatStateOf(0f)
         internal set
-    // Ubah elevation default ke 0 untuk style Flat/Hybrid
-    var cardElevation by mutableStateOf(0.dp)
+    // Elevation default (flat style)
+    var cardElevation by mutableStateOf(2.dp) // Sedikit elevation untuk depth
         internal set
 
-    var isShadowEnabled by mutableStateOf(false) // Matikan shadow default
+    var isShadowEnabled by mutableStateOf(true) // Enable shadow halus
         internal set
     var isCustomBackgroundEnabled by mutableStateOf(false)
         internal set
@@ -75,7 +75,7 @@ object CardConfig {
     fun reset() {
         cardAlpha = 1f
         cardDim = 0f
-        cardElevation = 0.dp
+        cardElevation = 2.dp
         isShadowEnabled = true
         isCustomBackgroundEnabled = false
         isCustomAlphaSet = false
@@ -86,13 +86,13 @@ object CardConfig {
 
     fun setThemeDefaults(isDarkMode: Boolean) {
         if (!isCustomAlphaSet) {
-            updateAlpha(if (isDarkMode) 1f else 1f, false)
+            updateAlpha(if (isDarkMode) 0.9f else 1f, false) // Dark mode sedikit transparan
         }
         if (!isCustomDimSet) {
             updateDim(if (isDarkMode) 0.1f else 0f, false)
         }
         if (isDarkMode && !isCustomBackgroundEnabled) {
-            updateShadow(false, 0.dp) // Force no shadow for dark gaming theme
+            updateShadow(true, 1.dp) // Shadow minimalis untuk dark gaming theme
         }
     }
 
@@ -113,7 +113,7 @@ object CardConfig {
 
     fun load(context: Context) {
         val prefs = context.getSharedPreferences("card_settings", Context.MODE_PRIVATE)
-        cardAlpha = prefs.getFloat(Keys.CARD_ALPHA, 1f).coerceIn(0f, 1f)
+        cardAlpha = prefs.getFloat(Keys.CARD_ALPHA, 0.95f).coerceIn(0f, 1f)
         cardDim = prefs.getFloat(Keys.CARD_DIM, 0f).coerceIn(0f, 1f)
         isCustomBackgroundEnabled = prefs.getBoolean(Keys.CUSTOM_BACKGROUND_ENABLED, false)
         isShadowEnabled = prefs.getBoolean(Keys.IS_SHADOW_ENABLED, true)
@@ -145,16 +145,16 @@ object CardStyleProvider {
     fun getCardElevation() = CardDefaults.cardElevation(
         defaultElevation = CardConfig.cardElevation,
         pressedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 0).dp
+            (CardConfig.cardElevation.value + 2).dp
         } else 0.dp,
         focusedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 0).dp
+            (CardConfig.cardElevation.value + 2).dp
         } else 0.dp,
         hoveredElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 0).dp
+            (CardConfig.cardElevation.value + 1).dp
         } else 0.dp,
         draggedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 0).dp
+            (CardConfig.cardElevation.value + 4).dp
         } else 0.dp,
         disabledElevation = 0.dp
     )
