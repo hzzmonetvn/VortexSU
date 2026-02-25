@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Stable
 object CardConfig {
-    // Default alpha sedikit transparan untuk kesan modern
+    // Ubah default alpha sedikit transparan
     var cardAlpha by mutableFloatStateOf(0.95f)
         internal set
     var cardDim by mutableFloatStateOf(0f)
         internal set
-    // Elevation 2dp untuk kesan "floating" minimalis
-    var cardElevation by mutableStateOf(2.dp)
+    // Ubah elevation default ke 0 untuk style Flat/Hybrid
+    var cardElevation by mutableStateOf(0.dp)
         internal set
 
-    var isShadowEnabled by mutableStateOf(true)
+    var isShadowEnabled by mutableStateOf(false) // Matikan shadow default
         internal set
     var isCustomBackgroundEnabled by mutableStateOf(false)
         internal set
@@ -75,7 +75,7 @@ object CardConfig {
     fun reset() {
         cardAlpha = 1f
         cardDim = 0f
-        cardElevation = 2.dp
+        cardElevation = 0.dp
         isShadowEnabled = true
         isCustomBackgroundEnabled = false
         isCustomAlphaSet = false
@@ -92,8 +92,7 @@ object CardConfig {
             updateDim(if (isDarkMode) 0.1f else 0f, false)
         }
         if (isDarkMode && !isCustomBackgroundEnabled) {
-            // Pertahankan shadow minimal di dark mode
-            updateShadow(true, 2.dp) 
+            updateShadow(false, 0.dp) // Force no shadow for dark gaming theme
         }
     }
 
@@ -146,16 +145,16 @@ object CardStyleProvider {
     fun getCardElevation() = CardDefaults.cardElevation(
         defaultElevation = CardConfig.cardElevation,
         pressedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 2).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         focusedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 2).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         hoveredElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 2).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         draggedElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 4).dp
+            (CardConfig.cardElevation.value + 0).dp
         } else 0.dp,
         disabledElevation = 0.dp
     )
