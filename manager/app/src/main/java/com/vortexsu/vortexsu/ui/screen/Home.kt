@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -304,12 +305,12 @@ private fun TopBar(
             .build()
     }
 
-    // PERBAIKAN: Banner di dalam Card, ada jarak, Split Layout Style
+    // PERBAIKAN: Layout Split dengan Konten di KIRI, Sejajar dengan Card Bawah
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp) // Jarak dari pinggir layar
+            .padding(horizontal = 12.dp, vertical = 8.dp) // Jarak luar agar tidak nabrak
     ) {
         ElevatedCard(
             modifier = Modifier
@@ -320,7 +321,7 @@ private fun TopBar(
             elevation = getCardElevation()
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // 1. Banner Image (Background)
+                // 1. Background Banner (Mengisi penuh)
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(customBannerUri ?: R.drawable.header_bg)
@@ -334,31 +335,31 @@ private fun TopBar(
                     contentScale = ContentScale.Crop
                 )
 
-                // 2. Split Overlay Gradient (Fade ke Kanan)
-                // Ini membuat efek "Split" tanpa garis tegas
+                // 2. Split Gradient Overlay (Kiri Solid -> Kanan Transparan)
+                // Tujuan: Area kiri jadi gelap/solid agar teks terbaca, area kanan memperlihatkan gambar.
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(
-                                    Color.Transparent, // Kiri: Gambar murni
-                                    Color.Transparent, // Tengah: Gambar murni
-                                    colorScheme.surfaceContainerHigh.copy(alpha = 0.7f), // Transisi
-                                    colorScheme.surfaceContainerHigh // Kanan: Solid untuk konten
+                                    colorScheme.surfaceContainerHigh.copy(alpha = 0.95f), // Kiri: Solid Background
+                                    colorScheme.surfaceContainerHigh.copy(alpha = 0.7f),  // Transisi
+                                    Color.Transparent // Kanan: Gambar Murni
                                 ),
-                                startX = 0f,
-                                endX = Float.POSITIVE_INFINITY
+                                // startX negatif & endX kecil memastikan gradien fokus di kiri
+                                startX = -Float.MAX_VALUE, 
+                                endX = 500f 
                             )
                         )
                 )
 
-                // 3. Konten (Teks & Tombol) di Kanan Atas
+                // 3. Konten (Kiri Atas) - Sejajar dengan Card "Berfungsi"
                 Column(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.End, // Rata kanan
+                        .align(Alignment.TopStart) // DI KIRI ATAS
+                        .padding(16.dp), // Padding sama dengan card bawah agar sejajar
+                    horizontalAlignment = Alignment.Start, // Rata Kiri
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // Teks VorteXSU
@@ -378,34 +379,44 @@ private fun TopBar(
                         color = colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    // Tombol Aksi
+                    // Tombol Aksi (Style Menarik)
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (isDataLoaded) {
+                            // Tombol SuSFS
                             if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
-                                IconButton(onClick = {
-                                    navigator.navigate(SuSFSConfigScreenDestination)
-                                }) {
+                                // Menggunakan Surface agar ada background style
+                                Surface(
+                                    onClick = { navigator.navigate(SuSFSConfigScreenDestination) },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = colorScheme.primaryContainer.copy(alpha = 0.8f),
+                                    contentColor = colorScheme.onPrimaryContainer
+                                ) {
                                     Icon(
                                         imageVector = Icons.Filled.Tune,
                                         contentDescription = stringResource(R.string.susfs_config_setting_title),
-                                        tint = colorScheme.primary
+                                        modifier = Modifier.padding(8.dp)
                                     )
                                 }
                             }
 
+                            // Tombol Reboot
                             var showDropdown by remember { mutableStateOf(false) }
                             KsuIsValid {
-                                IconButton(onClick = {
-                                    showDropdown = true
-                                }) {
+                                Surface(
+                                    onClick = { showDropdown = true },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = colorScheme.secondaryContainer.copy(alpha = 0.8f),
+                                    contentColor = colorScheme.onSecondaryContainer
+                                ) {
                                     Icon(
                                         imageVector = Icons.Filled.PowerSettingsNew,
                                         contentDescription = stringResource(id = R.string.reboot),
-                                        tint = colorScheme.primary
+                                        modifier = Modifier.padding(8.dp)
                                     )
 
                                     DropdownMenu(expanded = showDropdown, onDismissRequest = {
