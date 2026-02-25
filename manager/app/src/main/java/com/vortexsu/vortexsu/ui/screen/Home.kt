@@ -141,12 +141,12 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(
-                        top = 12.dp, // Compact padding
+                        top = 12.dp,
                         start = 12.dp,
                         end = 12.dp,
                         bottom = 16.dp
                     ),
-                verticalArrangement = Arrangement.spacedBy(10.dp) // Compact spacing
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Status cards
                 if (viewModel.isCoreDataLoaded) {
@@ -308,7 +308,7 @@ private fun TopBar(
             .build()
     }
 
-    // SPLIT LAYOUT BANNER (Versi yang Anda suka)
+    // SPLIT LAYOUT BANNER
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -333,7 +333,8 @@ private fun TopBar(
                     modifier = Modifier
                         .weight(0.45f) // Proporsi 45%
                         .fillMaxHeight()
-                        .padding(16.dp),
+                        // PERBAIKAN: Jarak sedikit (20.dp horizontal) agar tidak mepet, tapi tidak terlalu jauh
+                        .padding(horizontal = 20.dp, vertical = 16.dp), 
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     // Title Area
@@ -418,7 +419,7 @@ private fun TopBar(
                             .clipToBounds(),
                         contentScale = ContentScale.Crop
                     )
-                    // Gradient Overlay untuk menyatukan gambar dengan card
+                    // Gradient Overlay
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -541,7 +542,7 @@ fun HybridChip(text: String, bgColor: Color, textColor: Color) {
         color = bgColor,
         modifier = Modifier.height(20.dp)
     ) {
-        // PERBAIKAN: Box untuk memastikan teks sejajar vertikal di tengah
+        // Box untuk center vertikal
         Box(
             modifier = Modifier
                 .fillMaxHeight()
@@ -583,7 +584,7 @@ private fun HybridInfoCard(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            // Dense Rows - Layout Modern Tanpa Titik Dua
+            // Dense Rows
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 HybridInfoRow(Icons.Default.Memory, stringResource(R.string.home_kernel), systemInfo.kernelRelease)
                 
@@ -606,7 +607,7 @@ private fun HybridInfoCard(
                     valueColor = if (systemInfo.seLinuxStatus.equals("Enforcing", true)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 )
                 
-                // Logic for other infos (KPM, SuSFS, etc) - keep logic intact
+                // Logic intact
                 if (!isSimpleMode && !isHideZygiskImplement && systemInfo.zygiskImplement != "None") {
                      HybridInfoRow(Icons.Default.Adb, stringResource(R.string.home_zygisk_implement), systemInfo.zygiskImplement)
                 }
@@ -648,7 +649,7 @@ fun HybridInfoRow(
         
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = label, // Hanya Label, TANPA TITIK DUA
+                text = label,
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 1.dp)
@@ -683,7 +684,7 @@ fun WarningCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(onClick?.let { Modifier.clickable { it() } } ?: Modifier)
-                .padding(16.dp), // Compact padding
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
