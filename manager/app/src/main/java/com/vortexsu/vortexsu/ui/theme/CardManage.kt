@@ -11,16 +11,16 @@ import androidx.compose.ui.unit.dp
 
 @Stable
 object CardConfig {
-    // Transparansi default (sedikit terlihat background)
+    // Default alpha sedikit transparan untuk kesan modern
     var cardAlpha by mutableFloatStateOf(0.95f)
         internal set
     var cardDim by mutableFloatStateOf(0f)
         internal set
-    // Elevation default (flat style)
-    var cardElevation by mutableStateOf(2.dp) // Sedikit elevation untuk depth
+    // Elevation 2dp untuk kesan "floating" minimalis
+    var cardElevation by mutableStateOf(2.dp)
         internal set
 
-    var isShadowEnabled by mutableStateOf(true) // Enable shadow halus
+    var isShadowEnabled by mutableStateOf(true)
         internal set
     var isCustomBackgroundEnabled by mutableStateOf(false)
         internal set
@@ -86,13 +86,14 @@ object CardConfig {
 
     fun setThemeDefaults(isDarkMode: Boolean) {
         if (!isCustomAlphaSet) {
-            updateAlpha(if (isDarkMode) 0.9f else 1f, false) // Dark mode sedikit transparan
+            updateAlpha(if (isDarkMode) 1f else 1f, false)
         }
         if (!isCustomDimSet) {
             updateDim(if (isDarkMode) 0.1f else 0f, false)
         }
         if (isDarkMode && !isCustomBackgroundEnabled) {
-            updateShadow(true, 1.dp) // Shadow minimalis untuk dark gaming theme
+            // Pertahankan shadow minimal di dark mode
+            updateShadow(true, 2.dp) 
         }
     }
 
@@ -113,7 +114,7 @@ object CardConfig {
 
     fun load(context: Context) {
         val prefs = context.getSharedPreferences("card_settings", Context.MODE_PRIVATE)
-        cardAlpha = prefs.getFloat(Keys.CARD_ALPHA, 0.95f).coerceIn(0f, 1f)
+        cardAlpha = prefs.getFloat(Keys.CARD_ALPHA, 1f).coerceIn(0f, 1f)
         cardDim = prefs.getFloat(Keys.CARD_DIM, 0f).coerceIn(0f, 1f)
         isCustomBackgroundEnabled = prefs.getBoolean(Keys.CUSTOM_BACKGROUND_ENABLED, false)
         isShadowEnabled = prefs.getBoolean(Keys.IS_SHADOW_ENABLED, true)
@@ -151,7 +152,7 @@ object CardStyleProvider {
             (CardConfig.cardElevation.value + 2).dp
         } else 0.dp,
         hoveredElevation = if (CardConfig.isShadowEnabled) {
-            (CardConfig.cardElevation.value + 1).dp
+            (CardConfig.cardElevation.value + 2).dp
         } else 0.dp,
         draggedElevation = if (CardConfig.isShadowEnabled) {
             (CardConfig.cardElevation.value + 4).dp
