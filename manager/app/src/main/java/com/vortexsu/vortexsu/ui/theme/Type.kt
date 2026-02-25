@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Menggunakan FontFamily.Monospace untuk kesan Teknikal/Hybrid
+// Kembali ke FontFamily.Monospace sesuai request (bukan Sans Serif)
 val Typography = Typography(
     // Display
     displayLarge = TextStyle(
@@ -57,32 +57,32 @@ val Typography = Typography(
     // Title
     titleLarge = TextStyle(
         fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp, // Diperkecil sedikit
-        lineHeight = 24.sp,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp, // Compact
-        lineHeight = 20.sp,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Medium,
-        fontSize = 12.sp, // Compact
-        lineHeight = 16.sp,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
 
-    // Body - Paling sering digunakan untuk info
+    // Body - Ukuran kecil/pas
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.sp, // Diperkecil untuk density
-        lineHeight = 18.sp,
+        fontSize = 14.sp, // Ukuran standar, tidak kebesaran
+        lineHeight = 20.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
@@ -95,7 +95,7 @@ val Typography = Typography(
     bodySmall = TextStyle(
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.sp, // Info kecil
+        fontSize = 11.sp, // Lebih kecil untuk info
         lineHeight = 14.sp,
         letterSpacing = 0.4.sp
     ),
@@ -103,7 +103,7 @@ val Typography = Typography(
     // Label
     labelLarge = TextStyle(
         fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.Bold, // Lebih tebal untuk chip
+        fontWeight = FontWeight.Bold,
         fontSize = 11.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.1.sp
