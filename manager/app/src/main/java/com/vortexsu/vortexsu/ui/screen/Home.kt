@@ -141,12 +141,12 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(
-                        top = 12.dp,
+                        top = 12.dp, // Compact padding
                         start = 12.dp,
                         end = 12.dp,
                         bottom = 16.dp
                     ),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp) // Compact spacing
             ) {
                 // Status cards
                 if (viewModel.isCoreDataLoaded) {
@@ -308,7 +308,7 @@ private fun TopBar(
             .build()
     }
 
-    // STYLE YANG ANDA SUKA: Split Layout (Kiri Teks/Tombol, Kanan Gambar)
+    // SPLIT LAYOUT BANNER (Versi yang Anda suka)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -350,7 +350,7 @@ private fun TopBar(
                         )
                     }
 
-                    // Action Buttons (Transparan)
+                    // Action Buttons
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -541,6 +541,7 @@ fun HybridChip(text: String, bgColor: Color, textColor: Color) {
         color = bgColor,
         modifier = Modifier.height(20.dp)
     ) {
+        // PERBAIKAN: Box untuk memastikan teks sejajar vertikal di tengah
         Box(
             modifier = Modifier
                 .fillMaxHeight()
@@ -682,7 +683,7 @@ fun WarningCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(onClick?.let { Modifier.clickable { it() } } ?: Modifier)
-                .padding(16.dp),
+                .padding(16.dp), // Compact padding
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
