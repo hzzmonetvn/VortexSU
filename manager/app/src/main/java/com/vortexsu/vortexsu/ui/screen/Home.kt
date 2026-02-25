@@ -502,7 +502,7 @@ private fun HybridStatusCard(
                     // Chips for Info
                     if (systemStatus.ksuVersion != null) {
                         HybridChip(
-                            text = if (systemStatus.lkmMode == true) "LKM" else "BUILTIN",
+                            text = if (systemStatus.lkmMode == true) "LKM" else "GKI",
                             bgColor = successColor.copy(alpha = 0.2f),
                             textColor = successColor
                         )
