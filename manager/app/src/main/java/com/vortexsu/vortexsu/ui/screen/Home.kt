@@ -333,8 +333,8 @@ private fun TopBar(
                     modifier = Modifier
                         .weight(0.45f)
                         .fillMaxHeight()
-                        // PERBAIKAN: Jarak horizontal 20.dp sesuai instruksi
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        // PERBAIKAN: Padding 12.dp agar DEKAT ke tulisan/batasi image
+                        .padding(horizontal = 12.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     // Title Area
@@ -502,7 +502,7 @@ private fun HybridStatusCard(
                     // Chips for Info
                     if (systemStatus.ksuVersion != null) {
                         HybridChip(
-                            // PERBAIKAN: Diubah dari BUILTIN menjadi GKI sesuai instruksi
+                            // PERBAIKAN: Diubah dari BUILTIN menjadi GKI
                             text = if (systemStatus.lkmMode == true) "LKM" else "GKI",
                             bgColor = successColor.copy(alpha = 0.2f),
                             textColor = successColor
@@ -527,7 +527,8 @@ private fun HybridStatusCard(
                 if (!isHideVersion && systemStatus.ksuFullVersion != null) {
                     Text(
                         text = systemStatus.ksuFullVersion,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                        // Mengikuti sistem, hapus Monospace manual
+                        style = MaterialTheme.typography.bodyMedium, 
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -658,8 +659,8 @@ fun HybridInfoRow(
             
             Text(
                 text = value,
+                // Mengikuti sistem, hapus Monospace manual
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.SemiBold
                 ),
                 color = valueColor,
