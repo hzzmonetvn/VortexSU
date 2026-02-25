@@ -121,9 +121,8 @@ dependencies {
 
     implementation(libs.dev.rikka.rikkax.parcelablelist)
 
-    // Library Coil untuk Gambar & GIF
     implementation(libs.io.coil.kt.coil.compose)
-    implementation(libs.coilGif)   // 🔥 Ini yang bikin GIF bisa animasi bergerak
+    implementation("io.coil-kt:coil-gif:2.7.0") // Library untuk animasi GIF
 
     implementation(libs.kotlinx.coroutines.core)
 
