@@ -29,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -38,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -302,7 +304,7 @@ private fun TopBar(
             .build()
     }
 
-    // PERBAIKAN: Banner di dalam Card, ada jarak dari pinggir (padding), gambar FULL di dalam card
+    // PERBAIKAN: Banner di dalam Card, ada jarak, Split Layout Style
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -312,14 +314,13 @@ private fun TopBar(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp),
+                .height(180.dp),
             shape = RoundedCornerShape(16.dp),
             colors = getCardColors(colorScheme.surfaceContainerHigh),
             elevation = getCardElevation()
         ) {
-            // Box ini untuk menampung gambar dan tombol
             Box(modifier = Modifier.fillMaxSize()) {
-                // Banner Image - Full Size di dalam Card
+                // 1. Banner Image (Background)
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(customBannerUri ?: R.drawable.header_bg)
@@ -330,62 +331,99 @@ private fun TopBar(
                     modifier = Modifier
                         .fillMaxSize()
                         .clipToBounds(),
-                    contentScale = ContentScale.Crop // Gambar penuh, tidak terpotong aneh
+                    contentScale = ContentScale.Crop
                 )
 
-                // Overlay Gelap transparan agar tombol kelihatan
+                // 2. Split Overlay Gradient (Fade ke Kanan)
+                // Ini membuat efek "Split" tanpa garis tegas
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.2f))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent, // Kiri: Gambar murni
+                                    Color.Transparent, // Tengah: Gambar murni
+                                    colorScheme.surfaceContainerHigh.copy(alpha = 0.7f), // Transisi
+                                    colorScheme.surfaceContainerHigh // Kanan: Solid untuk konten
+                                ),
+                                startX = 0f,
+                                endX = Float.POSITIVE_INFINITY
+                            )
+                        )
                 )
 
-                // Action Buttons - Hanya tombol aksi
-                Row(
+                // 3. Konten (Teks & Tombol) di Kanan Atas
+                Column(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.End, // Rata kanan
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    if (isDataLoaded) {
-                        if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
-                            IconButton(onClick = {
-                                navigator.navigate(SuSFSConfigScreenDestination)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Tune,
-                                    contentDescription = stringResource(R.string.susfs_config_setting_title),
-                                    tint = Color.White
-                                )
-                            }
-                        }
+                    // Teks VorteXSU
+                    Text(
+                        text = "VorteXSU",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        ),
+                        color = colorScheme.primary
+                    )
+                    
+                    // Teks Subtitle
+                    Text(
+                        text = "Root is my life",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colorScheme.onSurfaceVariant
+                    )
 
-                        var showDropdown by remember { mutableStateOf(false) }
-                        KsuIsValid {
-                            IconButton(onClick = {
-                                showDropdown = true
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Filled.PowerSettingsNew,
-                                    contentDescription = stringResource(id = R.string.reboot),
-                                    tint = Color.White
-                                )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                                DropdownMenu(expanded = showDropdown, onDismissRequest = {
-                                    showDropdown = false
+                    // Tombol Aksi
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (isDataLoaded) {
+                            if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
+                                IconButton(onClick = {
+                                    navigator.navigate(SuSFSConfigScreenDestination)
                                 }) {
-                                    RebootDropdownItem(id = R.string.reboot)
+                                    Icon(
+                                        imageVector = Icons.Filled.Tune,
+                                        contentDescription = stringResource(R.string.susfs_config_setting_title),
+                                        tint = colorScheme.primary
+                                    )
+                                }
+                            }
 
-                                    val pm =
-                                        LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
-                                    @Suppress("DEPRECATION")
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
-                                        RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
+                            var showDropdown by remember { mutableStateOf(false) }
+                            KsuIsValid {
+                                IconButton(onClick = {
+                                    showDropdown = true
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.PowerSettingsNew,
+                                        contentDescription = stringResource(id = R.string.reboot),
+                                        tint = colorScheme.primary
+                                    )
+
+                                    DropdownMenu(expanded = showDropdown, onDismissRequest = {
+                                        showDropdown = false
+                                    }) {
+                                        RebootDropdownItem(id = R.string.reboot)
+
+                                        val pm =
+                                            LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                                        @Suppress("DEPRECATION")
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
+                                            RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
+                                        }
+                                        RebootDropdownItem(id = R.string.reboot_recovery, reason = "recovery")
+                                        RebootDropdownItem(id = R.string.reboot_bootloader, reason = "bootloader")
+                                        RebootDropdownItem(id = R.string.reboot_download, reason = "download")
+                                        RebootDropdownItem(id = R.string.reboot_edl, reason = "edl")
                                     }
-                                    RebootDropdownItem(id = R.string.reboot_recovery, reason = "recovery")
-                                    RebootDropdownItem(id = R.string.reboot_bootloader, reason = "bootloader")
-                                    RebootDropdownItem(id = R.string.reboot_download, reason = "download")
-                                    RebootDropdownItem(id = R.string.reboot_edl, reason = "edl")
                                 }
                             }
                         }
@@ -448,6 +486,7 @@ private fun HybridStatusCard(
 
             // Content
             Column(modifier = Modifier.weight(1f)) {
+                // PERBAIKAN: Alignment.CenterVertically agar teks dan chip sejajar
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = if (systemStatus.ksuVersion != null) stringResource(R.string.home_working) else stringResource(R.string.home_unsupported),
@@ -500,13 +539,22 @@ fun HybridChip(text: String, bgColor: Color, textColor: Color) {
         color = bgColor,
         modifier = Modifier.height(20.dp)
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = textColor,
-            modifier = Modifier.padding(horizontal = 6.dp),
-            fontWeight = FontWeight.Bold
-        )
+        // PERBAIKAN: Menggunakan Box dengan contentAlignment Center
+        // agar teks BUILTIN benar-benar di tengah vertikal
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 6.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelSmall,
+                color = textColor,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+        }
     }
 }
 
