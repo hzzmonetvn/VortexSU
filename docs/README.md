@@ -59,3 +59,8 @@ Supported managers:
 - Lightweight and optimized  
 - Multi-manager compatibility  
 - Suitable for OSS kernel builds  
+
+## Credits Sources & base 
+[Kernelsu Tian ](https://github.com/tiann/KernelSU)
+[SukiSU-Ultra](https://github.com/SukiSU-Ultra/SukiSU-Ultra)
+[ResukiSU](https://github.com/ReSukiSU/ReSukiSU) 
