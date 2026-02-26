@@ -38,10 +38,10 @@ curl -LSs "https://raw.githubusercontent.com/Kingfinik98/VortexSU/main/kernel/se
 ```
 ## Manager Support
 Supported managers:
-- MamboSU  
+- VortexSU 
 - KowSU  
 - RKSU  
-- VortexSU  
+- SukiSU Ultra  
 - KernelSU-Next  
 - WildKSU
 - 
