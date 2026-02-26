@@ -575,6 +575,9 @@ private fun HybridInfoCard(
     showKpmInfo: Boolean,
     lkmMode: Boolean?
 ) {
+    // TAMBAHAN: Ambil context untuk cek package name
+    val context = LocalContext.current
+
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
         elevation = getCardElevation(),
@@ -603,10 +606,15 @@ private fun HybridInfoCard(
 
                 HybridInfoRow(Icons.Default.PhoneAndroid, stringResource(R.string.home_device_model), systemInfo.deviceModel)
 
+                // MODIFIKASI: Logika penambahan teks "spoofed"
+                val isSpoofed = context.packageName != "com.vortexsu.vortexsu"
+                val versionDisplay = "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second.toInt()})" + 
+                                     if (isSpoofed) " spoofed" else ""
+
                 HybridInfoRow(
                     Icons.Default.SettingsSuggest, 
                     stringResource(R.string.home_manager_version), 
-                    "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second.toInt()})"
+                    versionDisplay
                 )
 
                 HybridInfoRow(
