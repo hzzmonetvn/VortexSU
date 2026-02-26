@@ -36,6 +36,13 @@ Use the following command to integrate VorteXSU into your kernel source:
 curl -LSs "https://raw.githubusercontent.com/Kingfinik98/VortexSU/main/kernel/setup.sh" | bash -s main
 
 ```
+
+## intergration kpm patch
+
+```sh
+curl -LSs "https://github.com/Kingfinik98/SukiSU_patch/raw/refs/heads/main/kpm/patch_linux" -o patch
+```
+
 ## Manager Support
 Supported managers:
 - VortexSU 
