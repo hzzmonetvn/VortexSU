@@ -142,7 +142,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(
-                        top = 16.dp,
+                        top = 12.dp,
                         start = 16.dp, // Slightly widened side padding
                         end = 16.dp,
                         bottom = 16.dp
@@ -313,7 +313,7 @@ private fun TopBar(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         ElevatedCard(
             modifier = Modifier
@@ -347,7 +347,7 @@ private fun TopBar(
                             color = colorScheme.primary
                         )
                         Text(
-                            text = "Advanced Kernel-Based Root Solution",
+                            text = "Kernel-Based Root Solution",
                             style = MaterialTheme.typography.labelMedium,
                             color = colorScheme.onSurfaceVariant
                         )
@@ -471,7 +471,7 @@ private fun HybridStatusCard(
                 .clickable(enabled = systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
                     onClickInstall()
                 }
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon Box (Dibuat lebih menonjol)
