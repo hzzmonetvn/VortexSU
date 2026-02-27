@@ -347,7 +347,7 @@ private fun TopBar(
                             color = colorScheme.primary
                         )
                         Text(
-                            text = "Kernel-Based Root Solution",
+                            text = "Root is freedom",
                             style = MaterialTheme.typography.labelMedium,
                             color = colorScheme.onSurfaceVariant
                         )
