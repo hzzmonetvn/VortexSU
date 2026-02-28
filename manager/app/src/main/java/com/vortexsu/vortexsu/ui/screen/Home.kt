@@ -15,7 +15,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -38,7 +37,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -402,7 +400,8 @@ private fun LiquidGlassSpecsCard(
             }
 
             if (!isSimpleMode && !isHideSusfsStatus && systemInfo.suSFSStatus == "Supported" && systemInfo.suSFSVersion.isNotEmpty()) {
-                val infoText = "${systemInfo.suSFSVersion} (${Natives.getHookType()})"
+                // Menggunakan suSFSVariant yang sudah di-load di ViewModel
+                val infoText = "${systemInfo.suSFSVersion} (${systemInfo.suSFSVariant})"
                 SpecChip(icon = Icons.Default.Storage, label = "SuSFS", value = infoText)
             }
         }
@@ -455,7 +454,7 @@ fun SpecChip(
     }
 }
 
-// ================= STANDARD COMPONENTS (Kept for reference/usage) =================
+// ================= STANDARD COMPONENTS =================
 
 @Composable
 fun UpdateCard() {
@@ -814,22 +813,24 @@ fun getManagerVersion(context: Context): Pair<String, Long> {
 private fun StatusCardPreview() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         LiquidGlassStatusSection(
-            HomeViewModel.SystemStatus(
+            systemStatus = HomeViewModel.SystemStatus(
                 isManager = true,
                 ksuVersion = 1,
                 lkmMode = true,
                 kernelVersion = KernelVersion(5, 10, 101),
                 isRootAvailable = true
-            )
+            ),
+            onClickInstall = {} // FIXED: Parameter ditambahkan
         )
         LiquidGlassStatusSection(
-            HomeViewModel.SystemStatus(
+            systemStatus = HomeViewModel.SystemStatus(
                 isManager = true,
                 ksuVersion = 1,
                 lkmMode = false, // GKI Mode
                 kernelVersion = KernelVersion(5, 10, 101),
                 isRootAvailable = true
-            )
+            ),
+            onClickInstall = {} // FIXED: Parameter ditambahkan
         )
     }
 }
