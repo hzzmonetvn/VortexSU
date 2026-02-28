@@ -11,6 +11,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -41,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,7 +82,7 @@ import kotlin.random.Random
 /**
  * @author kingfinik98
  * @date 2026/2/28.
- * UI Style Refactor: Modern hybrid
+ * UI Style Refactor: Liquid Glass Modern UI
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Destination<RootGraph>(start = true)
@@ -143,15 +145,15 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .verticalScroll(scrollState)
                     .padding(
                         top = 12.dp,
-                        start = 16.dp, // Slightly widened side padding
+                        start = 16.dp,
                         end = 16.dp,
                         bottom = 16.dp
                     ),
-                verticalArrangement = Arrangement.spacedBy(12.dp) // Spacing antar kartu
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Status cards
+                // Status Cards (Split Design)
                 if (viewModel.isCoreDataLoaded) {
-                    HybridStatusCard(
+                    LiquidGlassStatusSection(
                         systemStatus = viewModel.systemStatus,
                         onClickInstall = {
                             navigator.navigate(InstallScreenDestination(preselectedKernelUri = null))
@@ -189,7 +191,8 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                         UpdateCard()
                     }
 
-                    HybridInfoCard(
+                    // Specs Card (Grid/Flow Design)
+                    LiquidGlassSpecsCard(
                         systemInfo = viewModel.systemInfo,
                         isSimpleMode = viewModel.isSimpleMode,
                         isHideSusfsStatus = viewModel.isHideSusfsStatus,
@@ -223,6 +226,236 @@ fun HomeScreen(navigator: DestinationsNavigator) {
         }
     }
 }
+
+// ================= LIQUID GLASS COMPONENTS =================
+
+/**
+ * Modifier helper for Liquid Glass Effect
+ */
+fun Modifier.liquidGlassBackground(
+    shape: RoundedCornerShape = RoundedCornerShape(20.dp),
+    baseColor: Color = Color.White.copy(alpha = 0.1f)
+): Modifier = this
+    .clip(shape)
+    .background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.25f),
+                Color.White.copy(alpha = 0.05f)
+            )
+        )
+    )
+    .background(baseColor) // Base tint
+    .border(
+        width = 1.dp,
+        brush = Brush.linearGradient(
+            colors = listOf(Color.White.copy(alpha = 0.5f), Color.White.copy(alpha = 0.1f))
+        ),
+        shape = shape
+    )
+
+@Composable
+private fun LiquidGlassStatusSection(
+    systemStatus: HomeViewModel.SystemStatus,
+    onClickInstall: () -> Unit
+) {
+    val isWorking = systemStatus.ksuVersion != null
+    val isLkm = systemStatus.lkmMode == true
+
+    val successColor = MaterialTheme.colorScheme.primary
+    val warningColor = MaterialTheme.colorScheme.tertiary
+    val errorColor = MaterialTheme.colorScheme.error
+
+    // Container for the split cards
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Card 1: Status (Working / Unsupported)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .liquidGlassBackground(
+                    shape = RoundedCornerShape(20.dp),
+                    baseColor = if (isWorking) successColor.copy(alpha = 0.1f) else errorColor.copy(alpha = 0.1f)
+                )
+                .clickable(enabled = systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
+                    onClickInstall()
+                }
+                .padding(vertical = 20.dp, horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isWorking) Icons.Outlined.TaskAlt else Icons.Outlined.Block,
+                    contentDescription = null,
+                    tint = if (isWorking) successColor else errorColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = if (isWorking) "Working" else "Unsupported",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = if (isWorking) successColor else errorColor
+                )
+            }
+        }
+
+        // Card 2: Mode (LKM / GKI)
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .liquidGlassBackground(
+                    shape = RoundedCornerShape(20.dp),
+                    baseColor = warningColor.copy(alpha = 0.1f)
+                )
+                .padding(vertical = 20.dp, horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = if (isLkm) Icons.Default.Memory else Icons.Default.Android,
+                    contentDescription = null,
+                    tint = warningColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = if (isLkm) "LKM Mode" else "GKI",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = warningColor
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LiquidGlassSpecsCard(
+    systemInfo: HomeViewModel.SystemInfo,
+    isSimpleMode: Boolean,
+    isHideSusfsStatus: Boolean,
+    isHideZygiskImplement: Boolean,
+    isHideMetaModuleImplement: Boolean,
+    showKpmInfo: Boolean,
+    lkmMode: Boolean?
+) {
+    val context = LocalContext.current
+
+    // Main Container Card
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .liquidGlassBackground(shape = RoundedCornerShape(24.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "SYSTEM SPECS",
+            style = MaterialTheme.typography.labelLarge.copy(
+                letterSpacing = 2.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        // FlowRow for Grid-like layout
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            SpecChip(icon = Icons.Default.Memory, label = "Kernel", value = systemInfo.kernelRelease)
+            
+            if (!isSimpleMode) {
+                SpecChip(icon = Icons.Default.Android, label = "Android", value = systemInfo.androidVersion)
+            }
+
+            SpecChip(icon = Icons.Default.PhoneAndroid, label = "Device", value = systemInfo.deviceModel)
+
+            val isSpoofed = context.packageName != "com.vortexsu.vortexsu"
+            val versionDisplay = "${systemInfo.managerVersion.first}" + 
+                                 if (isSpoofed) " (Spoofed)" else ""
+            
+            SpecChip(icon = Icons.Default.SettingsSuggest, label = "Manager", value = versionDisplay)
+
+            SpecChip(
+                icon = Icons.Default.Security, 
+                label = "SELinux", 
+                value = systemInfo.seLinuxStatus,
+                valueColor = if (systemInfo.seLinuxStatus.equals("Enforcing", true)) 
+                    MaterialTheme.colorScheme.primary 
+                else 
+                    MaterialTheme.colorScheme.error
+            )
+
+            if (!isSimpleMode && !isHideZygiskImplement && systemInfo.zygiskImplement != "None") {
+                SpecChip(icon = Icons.Default.Adb, label = "Zygisk", value = systemInfo.zygiskImplement)
+            }
+
+            if (!isSimpleMode && !isHideMetaModuleImplement && systemInfo.metaModuleImplement != "None") {
+                SpecChip(icon = Icons.Default.Extension, label = "Module", value = systemInfo.metaModuleImplement)
+            }
+
+            if (!isSimpleMode && !isHideSusfsStatus && systemInfo.suSFSStatus == "Supported" && systemInfo.suSFSVersion.isNotEmpty()) {
+                val infoText = "${systemInfo.suSFSVersion} (${Natives.getHookType()})"
+                SpecChip(icon = Icons.Default.Storage, label = "SuSFS", value = infoText)
+            }
+        }
+    }
+}
+
+@Composable
+fun SpecChip(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Surface(
+        modifier = Modifier.defaultMinSize(minHeight = 42.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White.copy(alpha = 0.08f), // Semi-transparent inner card
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.15f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                modifier = Modifier.size(16.dp)
+            )
+            Column {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Light),
+                    color = Color.White.copy(alpha = 0.5f)
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.sp
+                    ),
+                    color = valueColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+// ================= STANDARD COMPONENTS (Kept for reference/usage) =================
 
 @Composable
 fun UpdateCard() {
@@ -290,12 +523,7 @@ private fun TopBar(
 ) {
     val context = LocalContext.current
     val colorScheme = MaterialTheme.colorScheme
-    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
-        colorScheme.surfaceContainerLow
-    } else {
-        colorScheme.background
-    }
-
+    
     val imageLoader = remember(context) {
         ImageLoader.Builder(context)
             .components {
@@ -308,7 +536,6 @@ private fun TopBar(
             .build()
     }
 
-    // MODERN BANNER STYLE
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -318,386 +545,118 @@ private fun TopBar(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp), // Tinggi dinaikkan sedikit
-            shape = RoundedCornerShape(24.dp), // Lebih bulat
+                .height(180.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = getCardColors(colorScheme.surfaceContainerHigh),
             elevation = getCardElevation()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha))
-            ) {
-                // SISI KIRI: Konten Teks & Tombol
-                Column(
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Background Image
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(customBannerUri ?: R.drawable.header_bg)
+                        .crossfade(true)
+                        .build(),
+                    imageLoader = imageLoader,
+                    contentDescription = null,
                     modifier = Modifier
-                        .weight(0.45f)
-                        .fillMaxHeight()
+                        .fillMaxSize()
+                        .clipToBounds(),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // Gradient Overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    colorScheme.surfaceContainerHigh.copy(alpha = 0.95f),
+                                    colorScheme.surfaceContainerHigh.copy(alpha = 0.6f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
+                // Content
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
                         .padding(horizontal = 20.dp, vertical = 20.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Title Area
-                    Column {
-                        Text(
-                            text = "VorteXSU",
-                            style = MaterialTheme.typography.headlineMedium.copy( // Ukuran lebih besar
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = (-0.5).sp
-                            ),
-                            color = colorScheme.primary
-                        )
-                        Text(
-                            text = "完全なルート制御",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Action Buttons
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        if (isDataLoaded) {
-                            if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
-                                IconButton(onClick = {
-                                    navigator.navigate(SuSFSConfigScreenDestination)
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Tune,
-                                        contentDescription = stringResource(R.string.susfs_config_setting_title),
-                                        tint = colorScheme.primary
-                                    )
-                                }
-                            }
+                        Column {
+                            Text(
+                                text = "VorteXSU",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = (-0.5).sp
+                                ),
+                                color = colorScheme.primary
+                            )
+                            Text(
+                                text = "完全なルート制御",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colorScheme.onSurfaceVariant
+                            )
+                        }
 
-                            var showDropdown by remember { mutableStateOf(false) }
-                            KsuIsValid {
-                                IconButton(onClick = {
-                                    showDropdown = true
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.PowerSettingsNew,
-                                        contentDescription = stringResource(id = R.string.reboot),
-                                        tint = colorScheme.primary
-                                    )
-
-                                    DropdownMenu(expanded = showDropdown, onDismissRequest = {
-                                        showDropdown = false
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (isDataLoaded) {
+                                if (getSuSFSStatus().equals("true", ignoreCase = true) && SuSFSManager.isBinaryAvailable(context)) {
+                                    IconButton(onClick = {
+                                        navigator.navigate(SuSFSConfigScreenDestination)
                                     }) {
-                                        RebootDropdownItem(id = R.string.reboot)
+                                        Icon(
+                                            imageVector = Icons.Filled.Tune,
+                                            contentDescription = stringResource(R.string.susfs_config_setting_title),
+                                            tint = colorScheme.primary
+                                        )
+                                    }
+                                }
 
-                                        val pm =
-                                            LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
-                                        @Suppress("DEPRECATION")
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
-                                            RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
+                                var showDropdown by remember { mutableStateOf(false) }
+                                KsuIsValid {
+                                    IconButton(onClick = {
+                                        showDropdown = true
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.PowerSettingsNew,
+                                            contentDescription = stringResource(id = R.string.reboot),
+                                            tint = colorScheme.primary
+                                        )
+
+                                        DropdownMenu(expanded = showDropdown, onDismissRequest = {
+                                            showDropdown = false
+                                        }) {
+                                            RebootDropdownItem(id = R.string.reboot)
+                                            val pm =
+                                                LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                                            @Suppress("DEPRECATION")
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
+                                                RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
+                                            }
+                                            RebootDropdownItem(id = R.string.reboot_recovery, reason = "recovery")
+                                            RebootDropdownItem(id = R.string.reboot_bootloader, reason = "bootloader")
+                                            RebootDropdownItem(id = R.string.reboot_download, reason = "download")
+                                            RebootDropdownItem(id = R.string.reboot_edl, reason = "edl")
                                         }
-                                        RebootDropdownItem(id = R.string.reboot_recovery, reason = "recovery")
-                                        RebootDropdownItem(id = R.string.reboot_bootloader, reason = "bootloader")
-                                        RebootDropdownItem(id = R.string.reboot_download, reason = "download")
-                                        RebootDropdownItem(id = R.string.reboot_edl, reason = "edl")
                                     }
                                 }
                             }
                         }
                     }
                 }
-
-                // SISI KANAN: Gambar Banner
-                Box(
-                    modifier = Modifier
-                        .weight(0.55f)
-                        .fillMaxHeight()
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(customBannerUri ?: R.drawable.header_bg)
-                            .crossfade(true)
-                            .build(),
-                        imageLoader = imageLoader,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clipToBounds(),
-                        contentScale = ContentScale.Crop
-                    )
-                    // Gradient Overlay yang lebih smooth
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        colorScheme.surfaceContainerHigh,
-                                        Color.Transparent
-                                    ),
-                                    startX = 0f,
-                                    endX = 300f
-                                )
-                            )
-                    )
-                }
             }
         }
     }
 }
-
-// ================= HYBRID UI COMPONENTS =================
-
-@Composable
-private fun HybridStatusCard(
-    systemStatus: HomeViewModel.SystemStatus,
-    onClickInstall: () -> Unit = {}
-) {
-    val successColor = MaterialTheme.colorScheme.primary
-    val errorColor = MaterialTheme.colorScheme.error
-
-    // Background Color Logic (Utuh)
-    val bgColor = if (systemStatus.ksuVersion != null) {
-        MaterialTheme.colorScheme.surfaceContainerHigh // Warna lebih solid
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerHighest
-    }
-
-    ElevatedCard(
-        colors = getCardColors(bgColor),
-        elevation = getCardElevation(),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp) // Shape lebih modern
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(enabled = systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
-                    onClickInstall()
-                }
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Icon Box (Dibuat lebih menonjol)
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(
-                        color = if (systemStatus.ksuVersion != null) successColor.copy(alpha = 0.15f) else errorColor.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(16.dp) // Square rounded
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (systemStatus.ksuVersion != null) Icons.Outlined.TaskAlt else Icons.Outlined.Block,
-                    contentDescription = null,
-                    tint = if (systemStatus.ksuVersion != null) successColor else errorColor,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-
-            Spacer(Modifier.width(20.dp))
-
-            // Content
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = if (systemStatus.ksuVersion != null) stringResource(R.string.home_working) else stringResource(R.string.home_unsupported),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = if (systemStatus.ksuVersion != null) successColor else errorColor
-                    )
-
-                    Spacer(Modifier.width(10.dp))
-
-                    // Chips
-                    if (systemStatus.ksuVersion != null) {
-                        HybridChip(
-                            text = if (systemStatus.lkmMode == true) "LKM" else "GKI",
-                            bgColor = successColor.copy(alpha = 0.2f),
-                            textColor = successColor
-                        )
-
-                        if (Os.uname().machine != "aarch64") {
-                            Spacer(Modifier.width(6.dp))
-                            HybridChip(
-                                text = Os.uname().machine,
-                                bgColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
-                                textColor = MaterialTheme.colorScheme.tertiary
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                val isHideVersion = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
-                    .getBoolean("is_hide_version", false)
-
-                if (!isHideVersion && systemStatus.ksuFullVersion != null) {
-                    Text(
-                        text = systemStatus.ksuFullVersion,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun HybridChip(text: String, bgColor: Color, textColor: Color) {
-    Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = bgColor,
-        modifier = Modifier.height(22.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelMedium,
-                color = textColor,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1
-            )
-        }
-    }
-}
-
-@Composable
-private fun HybridInfoCard(
-    systemInfo: HomeViewModel.SystemInfo,
-    isSimpleMode: Boolean,
-    isHideSusfsStatus: Boolean,
-    isHideZygiskImplement: Boolean,
-    isHideMetaModuleImplement: Boolean,
-    showKpmInfo: Boolean,
-    lkmMode: Boolean?
-) {
-    // TAMBAHAN: Ambil context untuk cek package name
-    val context = LocalContext.current
-
-    ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerLow),
-        elevation = getCardElevation(),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            // Header
-            Text(
-                text = "SYSTEM SPECS",
-                style = MaterialTheme.typography.labelLarge.copy(
-                    letterSpacing = 2.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Dense Rows
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                HybridInfoRow(Icons.Default.Memory, stringResource(R.string.home_kernel), systemInfo.kernelRelease)
-                
-                if (!isSimpleMode) {
-                    HybridInfoRow(Icons.Default.Android, stringResource(R.string.home_android_version), systemInfo.androidVersion)
-                }
-
-                HybridInfoRow(Icons.Default.PhoneAndroid, stringResource(R.string.home_device_model), systemInfo.deviceModel)
-
-                // MODIFIKASI: Logika penambahan teks "spoofed"
-                val isSpoofed = context.packageName != "com.vortexsu.vortexsu"
-                val versionDisplay = "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second.toInt()})" + 
-                                     if (isSpoofed) " spoofed" else ""
-
-                HybridInfoRow(
-                    Icons.Default.SettingsSuggest, 
-                    stringResource(R.string.home_manager_version), 
-                    versionDisplay
-                )
-
-                HybridInfoRow(
-                    Icons.Default.Security, 
-                    stringResource(R.string.home_selinux_status), 
-                    systemInfo.seLinuxStatus,
-                    valueColor = if (systemInfo.seLinuxStatus.equals("Enforcing", true)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
-                
-                // Logic intact
-                if (!isSimpleMode && !isHideZygiskImplement && systemInfo.zygiskImplement != "None") {
-                     HybridInfoRow(Icons.Default.Adb, stringResource(R.string.home_zygisk_implement), systemInfo.zygiskImplement)
-                }
-                
-                if (!isSimpleMode && !isHideMetaModuleImplement && systemInfo.metaModuleImplement != "None") {
-                     HybridInfoRow(Icons.Default.Extension, stringResource(R.string.home_meta_module_implement), systemInfo.metaModuleImplement)
-                }
-
-                if (!isSimpleMode && !isHideSusfsStatus && systemInfo.suSFSStatus == "Supported" && systemInfo.suSFSVersion.isNotEmpty()) {
-                     val infoText = buildString {
-                        append(systemInfo.suSFSVersion)
-                        append(" (${Natives.getHookType()})")
-                    }
-                    HybridInfoRow(Icons.Default.Storage, stringResource(R.string.home_susfs_version), infoText)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun HybridInfoRow(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    valueColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Icon Container
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(
-                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                    RoundedCornerShape(10.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-             Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                modifier = Modifier.size(18.dp)
-            )
-        }
-       
-        Spacer(Modifier.width(14.dp))
-        
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier.padding(bottom = 2.dp)
-            )
-            
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Medium
-                ),
-                color = valueColor,
-                maxLines = 2
-            )
-        }
-    }
-}
-
-// ================= END HYBRID UI =================
 
 @Composable
 fun WarningCard(
@@ -830,7 +789,7 @@ fun DonateCard() {
 @Composable
 private fun IncompatibleKernelCard() {
     val currentKver = remember { Natives.version }
-    val threshold   = Natives.MINIMAL_NEW_IOCTL_KERNEL
+    val threshold = Natives.MINIMAL_NEW_IOCTL_KERNEL
 
     val msg = stringResource(
         id = R.string.incompatible_kernel_msg,
@@ -854,11 +813,20 @@ fun getManagerVersion(context: Context): Pair<String, Long> {
 @Composable
 private fun StatusCardPreview() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        HybridStatusCard(
+        LiquidGlassStatusSection(
             HomeViewModel.SystemStatus(
                 isManager = true,
                 ksuVersion = 1,
-                lkmMode = null,
+                lkmMode = true,
+                kernelVersion = KernelVersion(5, 10, 101),
+                isRootAvailable = true
+            )
+        )
+        LiquidGlassStatusSection(
+            HomeViewModel.SystemStatus(
+                isManager = true,
+                ksuVersion = 1,
+                lkmMode = false, // GKI Mode
                 kernelVersion = KernelVersion(5, 10, 101),
                 isRootAvailable = true
             )
