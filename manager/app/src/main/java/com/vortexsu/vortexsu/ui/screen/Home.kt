@@ -78,9 +78,9 @@ import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
 /**
- * @author ShirkNeko
- * @date 2025/9/29.
- * UI Style Refactor: Modern Dashboard Look
+ * @author kingfinik98
+ * @date 2026/2/28.
+ * UI Style Refactor: Modern hybrid
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Destination<RootGraph>(start = true)
@@ -143,7 +143,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                     .verticalScroll(scrollState)
                     .padding(
                         top = 12.dp,
-                        start = 16.dp, // Sedikit diperlebar padding samping
+                        start = 16.dp, // Slightly widened side padding
                         end = 16.dp,
                         bottom = 16.dp
                     ),
@@ -308,12 +308,12 @@ private fun TopBar(
             .build()
     }
 
-    // MODERN BANNER STYLE
+    // MODERN BANNER STYLE - DENGAN PADDING VERTICAL LEBIH RAPAT
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp) // Diubah dari 12.dp menjadi 4.dp
     ) {
         ElevatedCard(
             modifier = Modifier
@@ -347,7 +347,7 @@ private fun TopBar(
                             color = colorScheme.primary
                         )
                         Text(
-                            text = "root is my life",
+                            text = "完全なルート制御",
                             style = MaterialTheme.typography.labelMedium,
                             color = colorScheme.onSurfaceVariant
                         )
@@ -471,7 +471,7 @@ private fun HybridStatusCard(
                 .clickable(enabled = systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
                     onClickInstall()
                 }
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon Box (Dibuat lebih menonjol)
